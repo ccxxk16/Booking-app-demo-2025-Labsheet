@@ -1500,6 +1500,7 @@ jobs:
       - name: Deploy Backend to Render (QA)
         run: |
           curl -X POST "${{ secrets.RENDER_QA_DEPLOY_HOOK }}"
+
 ```
 
 ### ขั้นตอนที่ 7.3: ตั้งค่า GitHub Environments
