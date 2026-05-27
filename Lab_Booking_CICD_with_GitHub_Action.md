@@ -440,7 +440,13 @@ model Booking {
 **คำถาม 2.1**: จาก schema นี้ ความสัมพันธ์ระหว่าง `Room` และ `Booking` เป็นแบบใด (one-to-one / one-to-many / many-to-many)? อธิบายเหตุผล
 
 ```plaintext
-# ตอบคำถามที่นี่
+Room และ Booking เป็นแบบ One-to-Many (หนึ่ง-ต่อ-กลุ่ม)
+
+1 ห้อง (Room) สามารถมีการจองได้หลายครั้ง (Many Bookings): สังเกตจากในโมเดล Room มีฟิลด์ bookings Booking[] (ระบุเป็น Array แปลว่ามีได้หลายรายการ)
+
+1 การจอง (Booking) ผูกกับห้องได้เพียง 1 ห้องเท่านั้น (One Room): สังเกตจากในโมเดล Booking มีฟิลด์ roomId Int? และ room Room? เป็นรูปแบบข้อมูลเดี่ยว (ไม่ได้เป็น Array)
+
+สรุป: ห้องพักหนึ่งห้องเปิดรับการจองได้เรื่อยๆ (Many) แต่ใบจองแต่ละใบจะระบุห้องพักได้เพียงห้องเดียวเท่านั้น (One)
 
 ```
 
@@ -642,8 +648,31 @@ curl http://localhost:3001/api/reports \
 **บันทึกผลการทดสอบ**:
 
 ```plaintext
-# วาง output จาก curl ที่นี่
+ curl -X POST http://localhost:3001/api/bookings   -H "Content-Type: application/json"   -d '{
+    "guestName": "Phapaporn Phuphalee",
+    "guestEmail": "68030159@kmitl.ac.th",
+    "phone": "0934193586",
+    "roomId": 1,
+    "guests": 1,
+    "checkIn": "2025-08-01",
+    "checkOut": "2025-08-03"
+  }'
+{"id":2,"fullname":"Phapaporn Phuphalee","email":"68030159@kmitl.ac.th","phone":"0934193586","checkin":"2025-08-01T00:00:00.000Z","checkout":"2025-08-03T00:00:00.000Z","roomtype":"standard","guests":1,"status":"pending","comment":null,"roomId":1,"createdAt":"2026-05-27T14:17:47.440Z"}
 
+curl -X POST http://localhost:3001/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "admin123"}'
+{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3OTg5MTQ5MSwiZXhwIjoxNzc5ODk1MDkxfQ.XO9b5xQrUcX94vmdMKuXZzy-eHIdDVU-Ms5ZbT6c7Ys","user":{"id":1,"username":"admin","role":"admin"}}
+
+ export TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3OTg5MTQ5MSwiZXhwIjoxNzc5ODk1MDkxfQ.XO9b5xQrUcX94vmdMKuXZzy-eHIdDVU-Ms5ZbT6c7Ys"
+
+ curl http://localhost:3001/api/bookings \
+  -H "Authorization: Bearer $TOKEN"
+[{"id":2,"fullname":"Phapaporn Phuphalee","email":"68030159@kmitl.ac.th","phone":"0934193586","checkin":"2025-08-01T00:00:00.000Z","checkout":"2025-08-03T00:00:00.000Z","roomtype":"standard","guests":1,"status":"pending","comment":null,"roomId":1,"createdAt":"2026-05-27T14:17:47.440Z","room":{"id":1,"roomType":"standard","name":"ห้องมาตรฐาน","description":"ห้องพักสำหรับ 1-2 ท่าน พร้อมสิ่งอำนวยความสะดวกพื้นฐาน","capacity":2,"price":1200,"createdAt":"2026-05-22T08:02:16.057Z"}},{"id":1,"fullname":"Test Guest","email":"test@example.com","phone":"0123456789","checkin":"2025-09-01T00:00:00.000Z","checkout":"2025-09-03T00:00:00.000Z","roomtype":"Deluxe-52716","guests":2,"status":"pending","comment":null,"roomId":37,"createdAt":"2026-05-22T11:57:24.651Z","room":{"id":37,"roomType":"Deluxe-52716","name":"Deluxe Room 52716","description":"Deluxe room with premium amenities","capacity":2,"price":1500,"createdAt":"2026-05-22T11:57:24.571Z"}}]
+
+ curl http://localhost:3001/api/reports \
+  -H "Authorization: Bearer $TOKEN"
+{"bookings":[{"id":2,"fullname":"Phapaporn Phuphalee","email":"68030159@kmitl.ac.th","phone":"0934193586","checkin":"2025-08-01T00:00:00.000Z","checkout":"2025-08-03T00:00:00.000Z","roomtype":"standard","guests":1,"status":"pending","comment":null,"roomId":1,"createdAt":"2026-05-27T14:17:47.440Z","room":{"id":1,"roomType":"standard","name":"ห้องมาตรฐาน","description":"ห้องพักสำหรับ 1-2 ท่าน พร้อมสิ่งอำนวยความสะดวกพื้นฐาน","capacity":2,"price":1200,"createdAt":"2026-05-22T08:02:16.057Z"}},{"id":1,"fullname":"Test Guest","email":"test@example.com","phone":"0123456789","checkin":"2025-09-01T00:00:00.000Z","checkout":"2025-09-03T00:00:00.000Z","roomtype":"Deluxe-52716","guests":2,"status":"pending","comment":null,"roomId":37,"createdAt":"2026-05-22T11:57:24.651Z","room":{"id":37,"roomType":"Deluxe-52716","name":"Deluxe Room 52716","description":"Deluxe room with premium amenities","capacity":2,"price":1500,"createdAt":"2026-05-22T11:57:24.571Z"}}],"summaryByRoom":{"ห้องมาตรฐาน":1,"Deluxe Room 52716":1},"summaryByStatus":{"pending":2},"totalNights":4,"totalBookings":2}
 
 
 ```
@@ -960,17 +989,36 @@ start newman-report.html       # Windows (Git Bash)
 > 🪟 **Windows**: ถ้า `start newman-report.html` ไม่ทำงาน ให้เปิด File Explorer แล้วดับเบิลคลิกไฟล์ `newman-report.html` แทน
 
 **แนบรูปผลการทดสอบ Newman**:
-
-```plaintext
-# แนบ screenshot ผลการทดสอบที่นี่
-
-```
+![alt text](image.png)
 
 **คำถาม 4.3**: Newman tests ที่เขียนมีการทดสอบทั้ง positive cases (สำเร็จ) และ negative cases (ล้มเหลว) อธิบายให้ครบอย่างน้อย 2 ตัวอย่าง
 
 ```plaintext
-# ตอบคำถามที่นี่
+1. Positive Cases (กรณีทดสอบสำเร็จ)
+กรณีที่ 1: POST /api/login (เข้าสู่ระบบสำเร็จ)
 
+สิ่งที่ทดสอบ: ส่งข้อมูล Login ที่ถูกต้อง (admin / admin123)
+
+ผลที่คาดหวัง: ได้ Status 200 OK, ได้รับ JWT Token กลับมา และข้อมูล User ต้องไม่มีการแนบ Password กลับมาเพื่อความปลอดภัย
+
+กรณีที่ 2: POST /api/bookings (สร้างการจองสำเร็จ)
+
+สิ่งที่ทดสอบ: ส่งข้อมูลการจองห้องพักในรูปแบบ JSON ที่ถูกต้องครบถ้วน
+
+ผลที่คาดหวัง: ได้ Status 201 Created, ระบบออกเลข id เป็นตัวเลขมากกว่า 0 และตั้งค่าเริ่มต้นของฟิลด์ status ให้เป็น "pending" อัตโนมัติ
+
+2. Negative Cases (กรณีทดสอบล้มเหลว)
+กรณีที่ 1: GET /api/bookings (NO token) (เรียกดูข้อมูลโดยไม่มีสิทธิ์)
+
+สิ่งที่ทดสอบ: จงใจส่ง Request ไปดึงข้อมูลการจองทั้งหมด โดยไม่แนบ Header Authorization (Bearer Token)
+
+ผลที่คาดหวัง: ได้ Status 401 Unauthorized และตัวระบบต้องตีกลับพร้อมข้อความผิดพลาดที่ระบุเรื่องให้ "เข้าสู่ระบบ"
+
+กรณีที่ 2: การตรวจสอบความปลอดภัยใน POST /api/login (ไม่ผ่านข้อกำหนด)
+
+สิ่งที่ทดสอบ: ตรวจสอบพฤติกรรมและการตอบสนองของระบบหลังบ้าน (Response Time)
+
+ผลที่คาดหวัง: หากระบบใช้เวลาประมวลผลนานเกิน 2000ms (2 วินาที) ถือว่าทดสอบไม่ผ่าน (Negative ในเชิง Performance/Security เผื่อโดนยิง Brute Force) หรือการที่ Payload ห้ามหลุด Password กลับมาในหน้าต่าง Response
 ```
 
 ---
@@ -995,8 +1043,19 @@ Workflow ที่มีอยู่ใช้ self-hosted runner และทำ
 **คำถาม 5.1**: ทำไม workflow ปัจจุบันถึงใช้ `self-hosted` runner? มีข้อดีข้อเสียอะไรเมื่อเทียบกับ `ubuntu-latest`?
 
 ```plaintext
-# ตอบคำถามที่นี่
+เหตุผลที่ใช้ self-hosted: เพราะต้องการให้ Workflow สามารถต่อตรงเข้า Server ภายใน (Private Network) ได้ทันที, เก็บ Cache บนเครื่องได้นานทำให้บิลด์เร็วขึ้น และกำหนดสเปกเครื่องได้เองตามใจชอบ
 
+self-hosted (เครื่องเราเอง):
+
+➕ ข้อดี: ปลอดภัยเรื่อง Network (ไม่ต้องเปิด Firewall ให้คนนอก), บิลด์เร็ว, ไม่เสียเงินค่านาทีบิลด์ให้ GitHub
+
+➖ ข้อเสีย: ต้องเหนื่อยดูแลระบบ/อัปเดต OS เอง และอันตรายมากถ้าใช้กับ Public Repo (เสี่ยงโดนรันโค้ดแปลกปลอมแฝงมาเจาะระบบ)
+
+ubuntu-latest (เครื่อง GitHub):
+
+➕ ข้อดี: สบายสุดๆ ไม่ต้องดูแลเอง (Zero Maintenance) ปลอดภัย ได้เครื่องใหม่สะอาดทุกครั้ง
+
+➖ ข้อเสีย: ต่อเข้า Network ภายในยาก, จำกัดสเปกเครื่อง, และถ้าใช้เกินโควตาฟรีต้องจ่ายเงินตามนาทีที่รัน
 ```
 
 ### ขั้นตอนที่ 5.2: วิเคราะห์ข้อจำกัดของ Workflow ปัจจุบัน
@@ -1503,10 +1562,7 @@ git push origin main
 
 **แนบรูป GitHub Actions Workflow ที่ผ่านทั้งหมด**:
 
-```plaintext
-# แนบ screenshot ที่นี่
-
-```
+![alt text](image1.png)
 
 ---
 
@@ -1747,9 +1803,47 @@ curl -I $BACKEND/api/rooms
 > 🪟 **Windows (Git Bash)**: คำสั่ง `export` และ multi-line `curl` ทำงานได้ปกติใน Git Bash ไม่ต้องเปลี่ยน syntax ใด ๆ
 
 **บันทึกผลการทดสอบบน Production**:
-
+![alt text](image2.png)
+![alt text](image3.png)
+![alt text](image4.png)
+![alt text](image5.png)
 ```plaintext
-# วาง output ที่นี่
+export BACKEND=https://booking-backend-v3ha.onrender.com
+
+curl $BACKEND/api/rooms
+[{"id":2,"roomType":"deluxe","name":"ห้องดีลักซ์","description":"พื้นที่กว้างขึ้น เหมาะสำหรับ 2-3 ท่าน","capacity":3,"price":1800,"createdAt":"2026-05-27T15:00:54.610Z"},{"id":1,"roomType":"standard","name":"ห้องมาตรฐาน","description":"ห้องพักสำหรับ 1-2 ท่าน พร้อมสิ่งอำนวยความสะดวกพื้นฐาน","capacity":2,"price":1200,"createdAt":"2026-05-27T15:00:54.606Z"},{"id":3,"roomType":"suite","name":"ห้องสวีท","description":"ห้องพักขนาดใหญ่สำหรับครอบครัวหรือกลุ่ม","capacity":4,"price":2500,"createdAt":"2026-05-27T15:00:54.685Z"}]
+
+curl -s -X POST $BACKEND/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3OTg5NTkyMSwiZXhwIjoxNzc5ODk5NTIxfQ.YD3SnEZ_d3MwnykVbzOjkmL_72mpid4XJJoyXpYh9Jo","user":{"id":1,"username":"admin","role":"admin"}}
+
+export
+TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3OTg5NTkyMSwiZXhwIjoxNzc5ODk5NTIxfQ.YD3SnEZ_d3MwnykVbzOjkmL_72mpid4XJJoyXpYh9Jo"
+
+curl $BACKEND/api/bookings \
+  -H "Authorization: Bearer $TOKEN"
+[{"id":1,"fullname":"Phapaporn Phuphalee","email":"68030159@kmitl.ac.th","phone":"0934193586","checkin":"2026-06-01T00:00:00.000Z","checkout":"2026-07-03T00:00:00.000Z","roomtype":"standard","guests":2,"status":"pending","comment":null,"roomId":1,"createdAt":"2026-05-27T15:24:30.923Z","room":{"id":1,"roomType":"standard","name":"ห้องมาตรฐาน","description":"ห้องพักสำหรับ 1-2 ท่าน พร้อมสิ่งอำนวยความสะดวกพื้นฐาน","capacity":2,"price":1200,"createdAt":"2026-05-27T15:00:54.606Z"}}]
+
+curl $BACKEND/api/reports \
+  -H "Authorization: Bearer $TOKEN"
+{"bookings":[{"id":1,"fullname":"Phapaporn Phuphalee","email":"68030159@kmitl.ac.th","phone":"0934193586","checkin":"2026-06-01T00:00:00.000Z","checkout":"2026-07-03T00:00:00.000Z","roomtype":"standard","guests":2,"status":"pending","comment":null,"roomId":1,"createdAt":"2026-05-27T15:24:30.923Z","room":{"id":1,"roomType":"standard","name":"ห้องมาตรฐาน","description":"ห้องพักสำหรับ 1-2 ท่าน พร้อมสิ่งอำนวยความสะดวกพื้นฐาน","capacity":2,"price":1200,"createdAt":"2026-05-27T15:00:54.606Z"}}],"summaryByRoom":{"ห้องมาตรฐาน":1},"summaryByStatus":{"pending":1},"totalNights":32,"totalBookings":1}
+
+curl -I $BACKEND/api/rooms
+HTTP/1.1 200 OK
+Date: Wed, 27 May 2026 15:32:35 GMT
+Content-Type: application/json; charset=utf-8
+Connection: keep-alive
+access-control-allow-origin: *
+etag: W/"32f-q1fdhMBu7MdAxhepYOCWmM6vdfk"
+rndr-id: 503c8f30-1174-47b2
+Server: cloudflare
+vary: Accept-Encoding
+x-powered-by: Express
+x-render-origin-server: Render
+cf-cache-status: DYNAMIC
+CF-RAY: a02612b6ee8ad339-BKK
+alt-svc: h3=":443"; ma=86400
 
 ```
 
